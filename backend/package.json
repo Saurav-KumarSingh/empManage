@@ -1,0 +1,27 @@
+{
+  "name": "employe-management",
+  "version": "1.0.0",
+  "description": "It is a Employe management project",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saurav-KumarSingh/empManage.git"
+  },
+  "author": "Saurav Kumar Singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Saurav-KumarSingh/empManage/issues"
+  },
+  "homepage": "https://github.com/Saurav-KumarSingh/empManage#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.20.0",
+    "mongoose": "^8.6.1"
+  }
+}
