@@ -3,25 +3,28 @@ import Employee from '../models/emp.model.js'; // Adjust the path if needed
 // Controller to add a new employee
 const addEmployee = async (req, res) => {
   try {
-    const employee = new Employee(req.body); // Create a new employee with the request body
-    await employee.save(); // Save the employee to the database
-    res.status(201).json({ message: 'Employee added successfully!', employee });
+    const employee = new Employee(req.body); 
+    await employee.save(); 
+    res.status(201).json({ message: 'Employee added successfully!' ,success:true});
   } catch (error) {
-    res.status(400).json({ error: error.message }); // Handle validation errors or other issues
+    res.status(400).json({ error: error.message  ,success:false});
   }
 };
 
-// Controller to get all employees
-const getEmployees = async (req, res) => {
+
+// Controller to update an employee
+const updateEmployee = async (req, res) => {
   try {
-    const employees = await Employee.find(); // Fetch all employees
-    res.status(200).json(employees);
+    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found',success:false });
+    }
+    res.status(200).json({ message: 'Employee updated successfully',success:true});
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching employees' });
+    res.status(400).json({ error: error.message,success:false });
   }
 };
-
-// Controller to get a single employee by ID
+// Controller to get an employee
 const getEmployeeById = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id); // Fetch employee by ID
@@ -34,80 +37,69 @@ const getEmployeeById = async (req, res) => {
   }
 };
 
-// Controller to update an employee by ID
-const updateEmployee = async (req, res) => {
-  try {
-    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!employee) {
-      return res.status(404).json({ message: 'Employee not found' });
-    }
-    res.status(200).json({ message: 'Employee updated successfully', employee });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-// Controller to delete an employee by ID
+// Controller to delete an employee
 const deleteEmployee = async (req, res) => {
+  console.log(req.params)
   try {
-    const employee = await Employee.findByIdAndDelete(req.params.id);
+    const { id } = req.params; 
+    const employee = await Employee.findByIdAndDelete(id);
     if (!employee) {
-      return res.status(404).json({ message: 'Employee not found' });
+      return res.status(404).json({ message: 'Employee not found', success: false });
     }
-    res.status(200).json({ message: 'Employee deleted successfully' });
+
+    res.status(200).json({ message: 'Employee deleted successfully', success: true });
   } catch (error) {
-    res.status(500).json({ error: 'Error deleting employee' });
+    console.error('Error deleting employee:', error); // Log error for debugging
+    res.status(500).json({ error: 'Error deleting employee', success: false });
   }
 };
 
-// Controller to search for employees
+
 const searchEmployees = async (req, res) => {
-    
   try {
     const { employeeID, name, department, startDate, endDate } = req.query;
 
     // Create query object
     const query = {};
 
-    // Exact match for Employee ID
+    // Determine which parameter is provided and build the query accordingly
     if (employeeID) {
       query.employeeID = employeeID;
-    }
-
-    // Partial match for Name (both first and last names)
-    if (name) {
+    } else if (name) {
       query.$or = [
         { firstName: new RegExp(name, 'i') },
         { lastName: new RegExp(name, 'i') }
       ];
-    }
-
-    // Exact match for Department
-    if (department) {
+    } else if (department) {
       query.department = department;
-    }
-
-    // Range filter for Date of Joining
-    if (startDate || endDate) {
+    } else if (startDate || endDate) {
       query.dateOfJoining = {};
       if (startDate) query.dateOfJoining.$gte = new Date(startDate);
       if (endDate) query.dateOfJoining.$lte = new Date(endDate);
+    }
+
+    // If no query parameter is provided, set query to match all documents
+    if (Object.keys(query).length === 0) {
+      // No specific query parameters, return all employees
+      query; // or simply set `query = {}` to match all documents
     }
 
     // Execute the query
     const employees = await Employee.find(query);
 
     // Respond with the result
-    res.status(200).json(employees);
+    res.status(200).json({ message: 'Employees found!', employees, success: true });
   } catch (error) {
+    // Log the error for debugging
     console.error('Error fetching employees:', error);
-    res.status(500).json({ error: 'Error fetching employee' });
+    res.status(500).json({ error: 'Error fetching employees', success: false });
   }
 };
 
+
+
 export default {
   addEmployee,
-  getEmployees,
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
